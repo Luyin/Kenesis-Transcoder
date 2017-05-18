@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kenesis.mappers.FilesMapper">  
+   <select id="readFiles" resultType="com.kenesis.transcoder.domain.FilesVO">
+  	select * from tbl_file where userid = #{userid} AND location like concat('%',#{location},'%')
+  </select>
+  
+  <insert id="insertFiles">
+  	insert into tbl_file (userid, location) values (#{userid}, #{location})
+  </insert>
+  
+  <select id="readFile" resultType="com.kenesis.transcoder.domain.FilesVO">
+  	select * from tbl_file where userid = #{userid} AND location = #{location}
+  </select>
+
+  <delete id="deleteFile">
+   delete from tbl_file where fileid = #{fileid}
+  </delete>
+</mapper>

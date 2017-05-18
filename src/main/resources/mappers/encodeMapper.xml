@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kenesis.mappers.EncodeMapper">
+    <insert id="insertEncode">
+        insert into tbl_encode (fileid, status, progress) values (#{fileid}, #{status}, #{progress})
+    </insert>
+
+    <select id="readEncode" resultType="com.kenesis.transcoder.domain.EncodeVO">
+        select * from tbl_encode where fileid = #{fileid}
+    </select>
+
+    <delete id="deleteEncode">
+        delete from tbl_encode where fileid = #{fileid}
+    </delete>
+
+    <update id="updateEncode">
+        update tbl_encode set status = #{status}, progress = #{progress} where fileid = #{fileid}
+    </update>
+</mapper>
