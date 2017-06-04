@@ -59,7 +59,8 @@ public class EncodeConsumer extends DefaultConsumer {
             encodeService.updateEncode(vo);
 
             transcode(abslocation,fileid);
-            segmentation(fileid);
+            generate_mpd(fileid);
+            generate_m3u8(fileid);
 
             vo.setStatus("Complete");
             vo.setProgress(100);
@@ -124,7 +125,7 @@ public class EncodeConsumer extends DefaultConsumer {
         }
     }
 
-    public void segmentation(String fileid) throws IOException
+    public void generate_mpd(String fileid) throws IOException
     {
         EncodeVO vo = new EncodeVO();
         vo.setFileid(Integer.parseInt(fileid));
@@ -138,7 +139,7 @@ public class EncodeConsumer extends DefaultConsumer {
         MediaPath.append("/kenesis/media/");
         MediaPath.append(fileid);
 
-        createDirectory(MediaPath.toString() + "/segmented");
+        createDirectory(MediaPath.toString() + "/segmented/mpd");
 
         ProcessBuilder pb = new ProcessBuilder(new String[]{
                 "MP4Box",
@@ -146,14 +147,52 @@ public class EncodeConsumer extends DefaultConsumer {
                 "-profile", "dashavc264:live",
                 "-bs-switching", "multi",
                 "-url-template", MediaPath.toString() + "/transcoded/media.mp4#trackID=1:id=vid0:role=vid0", MediaPath.toString() + "/transcoded/media.mp4#trackID=2:id=aud0:role=aud0",
-                "-out", MediaPath.toString() + "/segmented/media.mpd"});
+                "-out", MediaPath.toString() + "/segmented/mpd/media.mpd"});
 
         Process p = pb.start();
+
+        Scanner sc = new Scanner(p.getErrorStream());
+
+        while(sc.hasNext()){
+            System.out.println(sc.nextLine());
+        }
 
         vo.setProgress(100);
         vo.setStatus("Segmenting");
         encodeService.updateEncode(vo);
     }
+
+    public void generate_m3u8(String fileid) throws IOException
+    {
+        String HomePath = System.getProperty("user.home");
+        StringBuilder MediaPath = new StringBuilder();
+        MediaPath.append(HomePath);
+        MediaPath.append("/kenesis/media/");
+        MediaPath.append(fileid);
+
+        createDirectory(MediaPath.toString() + "/segmented/m3u8");
+
+        ProcessBuilder pb = new ProcessBuilder(new String[]{
+                "ffmpeg",
+                "-threads", "4",
+                "-i", MediaPath.toString() + "/transcoded/media.mp4",
+                "-codec", "copy",
+                "-vbsf", "h264_mp4toannexb",
+                "-map", "0",
+                "-f", "segment",
+                "-segment_list", MediaPath.toString() +"/segmented/m3u8/media.m3u8",
+                "-segment_time", "10",
+                MediaPath.toString() + "/segmented/m3u8/media%03d.ts"});
+
+        Process p = pb.start();
+
+        Scanner sc = new Scanner(p.getErrorStream());
+
+        while(sc.hasNext()){
+            System.out.println(sc.nextLine());
+        }
+    }
+
     public void createDirectory(String path)
     {
         File theDir = new File(path);
